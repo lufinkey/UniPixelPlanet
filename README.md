@@ -1,75 +1,29 @@
 
 # UniPixelPlanet
 ![color:ff69b4](https://img.shields.io/badge/licence-MIT-blue)
-![color:ff69b4](https://img.shields.io/badge/Unity-2020.2.x-red)
+![color:ff69b4](https://img.shields.io/badge/Unity-2020.3.x-red)
 ![color:ff69b4](https://img.shields.io/badge/Unity-URP-green)
 
-<img src="https://user-images.githubusercontent.com/7788005/111736087-82884880-88c0-11eb-9850-6d56b5f0ecae.gif" width="960" alt="UniPixelPlanet Sample gif">
+# UniPixelPlanet for Sprites
 
-UniPixelPlanet is Pixel Planet generator (Made with Unity).
+I prepared UniPixelPlanet from [hmcGit](https://github.com/hmcGit) so I can use them in a Unity 2D project as Sprites.
 
-PixelPlanet created with shader.
+I also added the latest Shaders of the Blackhole and Galaxy to this project. 
 
-Tested with URP.（It will works with standard shader, but not tested)
-
-
-# DEMO
- 
- [WebGL Demo](https://hmcgit.github.io/UniPixelPlanetWebGLDemo/)
- 
-# Features
-  
-* Generate Planet 
- ```
- Wet
- Dry
- Island
- No Atmosphere
- Gas Giant1
- Gas Giant2
- Ice
- Lava
- Asteroids
- Star
- ```
-* Random seed
-* Light origin
-* Rotation
-* Pixels
-* Pick Color and Gradation
-* Export png 
-* Export spritesheet
-
-# Usage
- 
-Use Prefab or Materials/Shaders.
- 
-# Note
- 
-![export1](https://user-images.githubusercontent.com/7788005/111735443-6506af00-88bf-11eb-9d60-6ff56987265c.png)
-![export2](https://user-images.githubusercontent.com/7788005/111735453-67690900-88bf-11eb-9907-41ed87bf2408.png)
+<img src="https://github.com/marcus-garvey/UniPixelPlanet/blob/main/Unity_LEAEnTUAOM.png">
 
 
-* Export : In some planet type ( Gas Giant2/Asterois/Stars ), export png and export spritesheets doesn't work properly.Image does not fit in area.
 
-# Using free assets
- 
-* [Simple pixel art UI pack](https://kobliznik.itch.io/pixel-ui-pack) - UI Asset
-* [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser) - Save File Dialog 
-* [Easy Color & Gradient Picker](https://assetstore.unity.com/packages/2d/gui/easy-color-gradient-picker-176831) - Color and Gradient Picker
-
-# Author
-
-* [hmcGit](https://github.com/hmcGit)
- 
 # License
  
 UniPixelPlanet is under [MIT license](https://en.wikipedia.org/wiki/MIT_License).
 
 # Thanks
 
-Awesome tool PixelPlanet made with Godot by Deep-Fold.
-
-UniPixelPlanet is ported from PixelPlanet(Godot) .
+Awesome tool PixelPlanet made with Godot by Deep-Fold. (Thanks a lot for this amazing Shaders!)
 
 [PixelPlanets](https://github.com/Deep-Fold/PixelPlanets)
+[itch.io](https://deep-fold.itch.io/pixel-planet-generator)
+
+
+UniPixelPlanet is ported from PixelPlanet(Godot) by [hmcGit](https://github.com/hmcGit)
