@@ -3,77 +3,75 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Asteroid : GeneratedPixelPlanet {
-    
-    [SerializeField] Color Color1 = ColorUtil.FromRGB("#a3a7c2");
-    [SerializeField] Color Color2 = ColorUtil.FromRGB("#4c6885");
-    [SerializeField] Color Color3 = ColorUtil.FromRGB("#3a3f5e");
+namespace DeepFold.PixelPlanets {
+	public class Asteroid: GeneratedPixelPlanet {
+
+		[SerializeField]
+		Color Color1 = ColorUtil.FromRGB("#a3a7c2");
+
+		[SerializeField]
+		Color Color2 = ColorUtil.FromRGB("#4c6885");
+
+		[SerializeField]
+		Color Color3 = ColorUtil.FromRGB("#3a3f5e");
 
 
-    [SerializeField] GameObject AsteroidSprite;
+		[SerializeField]
+		GameObject AsteroidSprite;
 
-    private Material AsteroidMat;
-    
-    private string[] init_colors = new string[] {"#a3a7c2", "#4c6885", "#3a3f5e"};
+		private Material AsteroidMat;
 
-    void Start()
-    {
-        AsteroidMat = AsteroidSprite.GetComponent<SpriteRenderer>().material;
+		private string[] init_colors = new string[] { "#a3a7c2", "#4c6885", "#3a3f5e" };
 
-        UpdatePlanetProperties();
-    }
+		void Start() {
+			AsteroidMat = AsteroidSprite.GetComponent<SpriteRenderer>().material;
 
-    public override void UpdatePlanetProperties()
-    {
-        SetPixel(Pixel);
+			UpdatePlanetProperties();
+		}
 
-        var seedInt = Seed.GetHashCode();
-        var rng = new System.Random(seedInt);
+		public override void UpdatePlanetProperties() {
+			SetPixel(Pixel);
 
-        var val = rng.NextDouble();
-        val = val < 0.1f ? val + 1 : val * 10;
-        CalcSeed = (float)val;
+			var seedInt = Seed.GetHashCode();
+			var rng = new System.Random(seedInt);
 
-        SetSeed((float)val);
+			var val = rng.NextDouble();
+			val = val < 0.1f ? val + 1 : val * 10;
+			CalcSeed = (float)val;
 
-        if (GenerateColors)
-        {
-            // maybe later
-        }
+			SetSeed((float)val);
 
-        UpdateColor();
-    }
+			if (GenerateColors) {
+				// maybe later
+			}
 
-    public void SetPixel(float amount)
-    {
-        AsteroidMat.SetFloat(ShaderProperties.Key_Pixels, amount);
-    }
+			UpdateColor();
+		}
 
-    public void SetLight(Vector2 pos)
-    {
-        AsteroidMat.SetVector(ShaderProperties.Key_Light_origin, pos);
-    }
+		public void SetPixel(float amount) {
+			AsteroidMat.SetFloat(ShaderProperties.Key_Pixels, amount);
+		}
 
-    public void SetSeed(float seed)
-    {
-        AsteroidMat.SetFloat(ShaderProperties.Key_Seed, seed);
-    }
+		public void SetLight(Vector2 pos) {
+			AsteroidMat.SetVector(ShaderProperties.Key_Light_origin, pos);
+		}
 
-    public void SetRotate(float r)
-    {
-        AsteroidMat.SetFloat(ShaderProperties.Key_Rotation, r);
-    }
+		public void SetSeed(float seed) {
+			AsteroidMat.SetFloat(ShaderProperties.Key_Seed, seed);
+		}
 
-    public void UpdateTime(float time)
-    {
-        return;
-    }
+		public void SetRotate(float r) {
+			AsteroidMat.SetFloat(ShaderProperties.Key_Rotation, r);
+		}
 
-    public void UpdateColor()
-    {
-        AsteroidMat.SetColor(ShaderProperties.Key_Color1, Color1);
-        AsteroidMat.SetColor(ShaderProperties.Key_Color2, Color2);
-        AsteroidMat.SetColor(ShaderProperties.Key_Color3, Color3);
-    }
+		public void UpdateTime(float time) {
+			return;
+		}
 
+		public void UpdateColor() {
+			AsteroidMat.SetColor(ShaderProperties.Key_Color1, Color1);
+			AsteroidMat.SetColor(ShaderProperties.Key_Color2, Color2);
+			AsteroidMat.SetColor(ShaderProperties.Key_Color3, Color3);
+		}
+	}
 }
