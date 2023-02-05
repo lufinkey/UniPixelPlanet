@@ -1,4 +1,4 @@
-Shader "Unlit/Star"
+Shader "PixelPlanets/Star"
 {
     Properties
     {

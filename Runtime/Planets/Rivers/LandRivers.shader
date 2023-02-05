@@ -1,4 +1,4 @@
-Shader "Unlit/LandRivers"
+Shader "PixelPlanets/LandRivers"
 {
     Properties
     {

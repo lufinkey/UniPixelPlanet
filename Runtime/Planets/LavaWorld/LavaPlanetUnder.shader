@@ -1,4 +1,4 @@
-Shader "Unlit/LavaPlanetUnder"
+Shader "PixelPlanets/LavaPlanetUnder"
 {
     Properties
     {

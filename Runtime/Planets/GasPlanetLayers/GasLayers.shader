@@ -1,4 +1,4 @@
-Shader "Unlit/GasLayers"
+Shader "PixelPlanets/GasLayers"
 {
     Properties
     {

@@ -1,4 +1,4 @@
-Shader "Unlit/LavaCraters"
+Shader "PixelPlanets/LavaCraters"
 {
     Properties
     {

@@ -1,4 +1,4 @@
-Shader "Unlit/NoAtmosphere"
+Shader "PixelPlanets/NoAtmosphere"
 {
     Properties
     {

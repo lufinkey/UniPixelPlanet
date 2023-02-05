@@ -1,4 +1,4 @@
-Shader "Unlit/IcePlanetUnder"
+Shader "PixelPlanets/IcePlanetUnder"
 {
     Properties
     {

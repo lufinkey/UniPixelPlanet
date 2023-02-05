@@ -1,4 +1,4 @@
-Shader "Unlit/Galaxy"
+Shader "PixelPlanets/Galaxy"
 {
     Properties
     {

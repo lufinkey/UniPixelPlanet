@@ -1,4 +1,4 @@
-Shader "Unlit/Craters"
+Shader "PixelPlanets/Craters"
 {
     Properties
     {

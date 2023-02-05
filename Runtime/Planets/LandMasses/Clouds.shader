@@ -1,4 +1,4 @@
-Shader "Unlit/Clouds"
+Shader "PixelPlanets/Clouds"
 {
     Properties
     {

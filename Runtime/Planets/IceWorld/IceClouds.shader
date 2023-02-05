@@ -1,4 +1,4 @@
-Shader "Unlit/IceClouds"
+Shader "PixelPlanets/IceClouds"
 {
     Properties
     {

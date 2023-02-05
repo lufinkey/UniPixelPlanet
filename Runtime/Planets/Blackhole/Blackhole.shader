@@ -1,4 +1,4 @@
-Shader "Unlit/Blackhole"
+Shader "PixelPlanets/Blackhole"
 {
     Properties
     {

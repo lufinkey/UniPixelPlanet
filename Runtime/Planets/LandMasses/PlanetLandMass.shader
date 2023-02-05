@@ -1,4 +1,4 @@
-Shader "Unlit/PlanetLandMass"
+Shader "PixelPlanets/PlanetLandMass"
 {
     Properties
     {

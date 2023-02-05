@@ -1,4 +1,4 @@
-Shader "Unlit/StarBlobs"
+Shader "PixelPlanets/StarBlobs"
 {
     Properties
     {

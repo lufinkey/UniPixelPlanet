@@ -1,4 +1,4 @@
-Shader "Unlit/Lakes"
+Shader "PixelPlanets/Lakes"
 {
     Properties
     {

@@ -1,4 +1,4 @@
-Shader "Unlit/LavaRivers"
+Shader "PixelPlanets/LavaRivers"
 {
     Properties
     {

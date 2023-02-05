@@ -1,4 +1,4 @@
-Shader "Unlit/DryTerran"
+Shader "PixelPlanets/DryTerran"
 {
     Properties
     {

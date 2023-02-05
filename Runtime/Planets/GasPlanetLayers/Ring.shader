@@ -1,4 +1,4 @@
-Shader "Unlit/Ring"
+Shader "PixelPlanets/Ring"
 {
     Properties
     {

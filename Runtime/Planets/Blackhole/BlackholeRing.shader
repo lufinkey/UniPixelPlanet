@@ -1,4 +1,4 @@
-Shader "Unlit/BlackholeRing"
+Shader "PixelPlanets/BlackholeRing"
 {
     Properties
     {
