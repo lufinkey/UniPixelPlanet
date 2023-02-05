@@ -22,12 +22,12 @@ Shader "PixelPlanets/LavaCraters"
     SubShader
     {
         //Tags { "RenderType"="Opaque" }
-        Tags { "RenderType"="Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
+        Tags { "RenderType"="Opaque" "IgnoreProjector" = "True"}
         LOD 100
 
         Pass
         {
-			Tags { "LightMode"="UniversalForward"}
+			Tags { "LightMode"="ForwardBase"}
 
 			CULL Off
 			ZWrite Off // don't write to depth buffer 
