@@ -1,0 +1,9 @@
+﻿{
+	"name": "DeepFold.PixelPlanets.Editor",
+	"references": [
+		"DeepFold.PixelPlanets"
+	],
+	"includePlatforms": [
+		"Editor"
+	]
+}

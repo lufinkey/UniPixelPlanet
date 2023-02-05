@@ -1,0 +1,18 @@
+{
+	"name": "com.deepfold.pixelplanets",
+	"version": "0.0.1",
+	"displayName": "Pixel Planets",
+	"description": "A collection of shaders to generate pixel planets",
+	"unity": "2020.3",
+	"unityRelease": "25f1",
+	"dependencies": {
+		"com.unity.2d.sprite": "^1.0.0",
+		"com.unity.2d.spriteshape": "^5.1.0"
+	},
+	"keywords": [],
+	"author": {
+		"name": "DeepFold",
+		"email": "deepfoldreal@gmail.com",
+		"url": "https://deep-fold.itch.io"
+	}
+}
