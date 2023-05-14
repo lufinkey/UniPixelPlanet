@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &3650144835493163426
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 6712188353046255565, guid: 2cd1c663f880105428a8b6c380b7d948, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 6cc266c8e97c7ab4cbfa439578c19f86, type: 2}
+    - target: {fileID: 6712188353631335692, guid: 2cd1c663f880105428a8b6c380b7d948, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: c0bcefce931f8d54686fd81b795a6507, type: 2}
+    - target: {fileID: 6712188353941558389, guid: 2cd1c663f880105428a8b6c380b7d948, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 3b44d95fc264cbc42a455f4c7efa4587, type: 2}
+    - target: {fileID: 6712188354421008569, guid: 2cd1c663f880105428a8b6c380b7d948, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6712188354421008569, guid: 2cd1c663f880105428a8b6c380b7d948, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6712188354421008569, guid: 2cd1c663f880105428a8b6c380b7d948, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6712188354421008569, guid: 2cd1c663f880105428a8b6c380b7d948, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6712188354421008569, guid: 2cd1c663f880105428a8b6c380b7d948, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6712188354421008569, guid: 2cd1c663f880105428a8b6c380b7d948, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6712188354421008569, guid: 2cd1c663f880105428a8b6c380b7d948, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6712188354421008569, guid: 2cd1c663f880105428a8b6c380b7d948, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6712188354421008569, guid: 2cd1c663f880105428a8b6c380b7d948, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6712188354421008569, guid: 2cd1c663f880105428a8b6c380b7d948, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6712188354421008569, guid: 2cd1c663f880105428a8b6c380b7d948, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6712188354421008571, guid: 2cd1c663f880105428a8b6c380b7d948, type: 3}
+      propertyPath: m_Name
+      value: IceWorld-URP
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2cd1c663f880105428a8b6c380b7d948, type: 3}
