@@ -1,4 +1,4 @@
-Shader "PixelPlanets/Standard/LavaPlanetUnder"
+Shader "PixelPlanets/URP/LavaPlanetUnder"
 {
     Properties
     {
@@ -26,12 +26,12 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
     SubShader
     {
         //Tags { "RenderType"="Opaque" }
-        Tags { "RenderType"="Opaque" "IgnoreProjector" = "True" }
+        Tags { "RenderType"="Opaque" "IgnoreProjector"="True" "RenderPipeline"="UniversalPipeline" }
         LOD 100
 
         Pass
         {
-			Tags { "LightMode"="ForwardBase"}
+			Tags { "LightMode"="UniversalForward" }
 
 			CULL Off
 			ZWrite Off // don't write to depth buffer 

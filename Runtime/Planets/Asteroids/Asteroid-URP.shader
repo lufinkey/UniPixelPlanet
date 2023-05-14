@@ -1,44 +1,37 @@
-Shader "PixelPlanets/Standard/LavaPlanetUnder"
+Shader "PixelPlanets/URP/Asteroid"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
     	
-	    _Pixels("Pixels", range(10,100)) = 0.0
+	    _Pixels("Pixels", range(10,512)) = 100.0
 	    _Rotation("Rotation",range(0.0, 6.28)) = 0.0
     	_Light_origin("Light origin", Vector) = (0.39,0.39,0.39,0.39)
 	    _Time_speed("Time Speed",range(-1.0, 1.0)) = 0.2
-	    _Dither_Size("Dither Size",range(0.0, 10.0)) = 2.0
-    	
-	    _Light_border_1("Light border1",range(0.0, 1.0)) = 0.52
-	    _Light_border_2("Light border2",range(0.0, 1.0)) = 0.62
     	    	
 	    _Color1("Color1", Color) = (1,1,1,1)
     	_Color2("Color2", Color) = (1,1,1,1)
     	_Color3("Color3", Color) = (1,1,1,1)
     	
-	    _Size("Size",float) = 50.0
-	    _OCTAVES("OCTAVES", range(0,20)) = 0
-	    _Seed("Seed",range(1, 10)) = 1
-	    time("time",float) = 0.0
+	    _Size("size",float) = 5.294
+	    _OCTAVES("OCTAVES", range(0,20)) = 2
+	    _Seed("seed",range(1, 10)) = 1.567
     	
     }
     SubShader
     {
         //Tags { "RenderType"="Opaque" }
-        Tags { "RenderType"="Opaque" "IgnoreProjector" = "True" }
+        Tags { "RenderType"="Opaque" "IgnoreProjector"="True" "RenderPipeline"="UniversalPipeline"}
         LOD 100
 
         Pass
         {
-			Tags { "LightMode"="ForwardBase"}
+			Tags { "LightMode"="UniversalForward"}
 
 			CULL Off
 			ZWrite Off // don't write to depth buffer 
          	Blend SrcAlpha OneMinusSrcAlpha // use alpha blending
 
-
-        	
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -65,7 +58,6 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
             float4 _MainTex_ST;
             float _Pixels;
             float _Rotation;
-            float _Dither_Size;
 			float2 _Light_origin;    	
 			float _Time_speed;
             float _Light_border_1;
@@ -73,7 +65,6 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
             float _Size;
             int _OCTAVES;
             int _Seed;
-			float time;
     		fixed4 _Color1;
             fixed4 _Color2;
             fixed4 _Color3;
@@ -132,46 +123,77 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
             	coord = mul(coord,float2x2(float2(cos(angle),-sin(angle)),float2(sin(angle),cos(angle))));
 				return coord + 0.5;
 			}
+			// by Leukbaars from https://www.shadertoy.com/view/4tK3zR
+			float circleNoise(float2 uv) {
+			    float uv_y = floor(uv.y);
+			    uv.x += uv_y*.31;
+			    float2 f = frac(uv);
+				float h = rand(float2(floor(uv.x),floor(uv_y)));
+			    float m = (length(f-0.25-(h*0.5)));
+			    float r = h*0.25;
+			    return m = smoothstep(r-.10*r,r,m);
+			}
+
+			float crater(float2 uv) {
+				float c = 1.0;
+				for (int i = 0; i < 2; i++) {
+					c *= circleNoise((uv * _Size) + (float(i+1)+10.));
+				}
+				return 1.0 - c;
+			}
 
 			fixed4 frag(v2f i) : COLOR {
 				// pixelize uv
             	
 				float2 uv = floor(i.uv*_Pixels)/_Pixels;				
 				//uv.y = 1 - uv.y;
-	
-				// check distance from center & distance to light
-				float d_circle = distance(uv, float2(0.5,0.5));
-				float d_light = distance(uv , float2(_Light_origin));
-				// cut out a circle
-				float a = step(d_circle, 0.5);
+		
+				// we use this val later to interpolate between shades
+				bool dith = dither(uv, i.uv);
 				
-				bool dith = dither(uv,uv);
+				// distance from center
+				float d = distance(uv, float2(0.5,0.5));
+				
+				// optional rotation, do this after the dither or the dither will look very messed up
 				uv = rotate(uv, _Rotation);
-
-				// get a noise value with light distance added
-				// this creates a moving dynamic shape
-				float fbm1 = fbm(uv);
-				d_light += fbm(uv*_Size+fbm1+float2(time*_Time_speed, 0.0))*0.3; // change the magic 0.3 here for different light strengths
 				
-				// _Size of edge in which colors should be dithered
-				float dither_border = (1.0/_Pixels)*_Dither_Size;
+				// two noise values with one slightly offset according to light source, to create shadows later
+				float n = fbm(uv * _Size);
+				float n2 = fbm(uv * _Size + (rotate(_Light_origin, _Rotation)-0.5) * 0.5);
+				
+				// step noise values to determine where the edge of the asteroid is
+				// step cutoff value depends on distance from center
+				float n_step = step(0.2, n - d);
+				float n2_step = step(0.2, n2 - d);
+				
+				// with this val we can determine where the shadows should be
+				float noise_rel = (n2_step + n2) - (n_step + n);
+				
+				// two crater values, again one extra for the shadows
+				float c1 = crater(uv );
+				float c2 = crater(uv + (_Light_origin-0.5)*0.03);
 
-				// now we can assign colors based on distance to light origin
-				float3 col = _Color1.rgb;
-				if (d_light > _Light_border_1) {
-					col = _Color2.rgb;
-					if (d_light < _Light_border_1 + dither_border && dith) {
-						col = _Color1.rgb;
-					}
+				// now we just assign colors depending on noise values and crater values
+				// base
+				float3 col = _Color2.rgb;
+				
+				// noise
+				if (noise_rel < -0.06 || (noise_rel < -0.04 && dith)) {
+					col = _Color1.rgb;
 				}
-				if (d_light > _Light_border_2) {
+				if (noise_rel > 0.05 || (noise_rel > 0.03 && dith)) {
 					col = _Color3.rgb;
-					if (d_light < _Light_border_2 + dither_border && dith) {
-						col = _Color2.rgb;
-					}
 				}
 				
-				return fixed4(col, a);
+				// crater
+				if (c1 > 0.4)  {
+					col = _Color2.rgb;
+				}
+				if (c2<c1) {
+					col = _Color3.rgb;
+				}
+				
+				return fixed4(col, n_step);
 				}
             
             ENDCG

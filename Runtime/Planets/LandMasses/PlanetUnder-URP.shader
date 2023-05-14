@@ -1,9 +1,8 @@
-Shader "PixelPlanets/Standard/LavaPlanetUnder"
+Shader "PixelPlanets/URP/PlanetUnder"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-    	
 	    _Pixels("Pixels", range(10,100)) = 0.0
 	    _Rotation("Rotation",range(0.0, 6.28)) = 0.0
     	_Light_origin("Light origin", Vector) = (0.39,0.39,0.39,0.39)
@@ -26,19 +25,18 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
     SubShader
     {
         //Tags { "RenderType"="Opaque" }
-        Tags { "RenderType"="Opaque" "IgnoreProjector" = "True" }
+        Tags { "RenderType"="Opaque" "IgnoreProjector"="True" "RenderPipeline"="UniversalPipeline" }
         LOD 100
 
         Pass
         {
-			Tags { "LightMode"="ForwardBase"}
+			Tags { "LightMode"="UniversalForward" }
 
 			CULL Off
 			ZWrite Off // don't write to depth buffer 
          	Blend SrcAlpha OneMinusSrcAlpha // use alpha blending
 
 
-        	
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -70,7 +68,7 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
 			float _Time_speed;
             float _Light_border_1;
 			float _Light_border_2;
-            float _Size;
+			float _Size;
             int _OCTAVES;
             int _Seed;
 			float time;
@@ -90,9 +88,8 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
                 UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
             }
-			
 			float rand(float2 coord) {
-				coord = mod(coord, float2(1.0,1.0)*round(_Size));
+				coord = mod(coord, float2(2.0,1.0)*round(_Size));
 				return frac(sin(dot(coord.xy ,float2(12.9898,78.233))) * 15.5453 * _Seed);
 			}
 
@@ -109,6 +106,9 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
 
 				return lerp(a, b, cubic.x) + (c - a) * cubic.y * (1.0 - cubic.x) + (d - b) * cubic.x * cubic.y;
 			}
+			bool dither(float2 uv1, float2 uv2) {
+				return mod(uv1.x+uv2.y,2.0/_Pixels) <= 1.0 / _Pixels;
+			}
 
 			float fbm(float2 coord){
 				float value = 0.0;
@@ -122,13 +122,16 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
 				return value;
 			}
 
-			bool dither(float2 uv1, float2 uv2) {
-				return mod(uv1.x+uv2.y,2.0/_Pixels) <= 1.0 / _Pixels;
+			float2 spherify(float2 uv) {
+				float2 centered= uv *2.0-1.0;
+				float z = sqrt(1.0 - dot(centered.xy, centered.xy));
+				float2 sphere = centered/(z + 1.0);
+				return sphere * 0.5+0.5;
 			}
 
 			float2 rotate(float2 coord, float angle){
 				coord -= 0.5;
-				//coord *= mat2(float2(cos(angle),-sin(angle)),float2(sin(angle),cos(angle)));            	
+				//coord *= float2x2(float2(cos(angle),-sin(angle)),float2(sin(angle),cos(angle)));
             	coord = mul(coord,float2x2(float2(cos(angle),-sin(angle)),float2(sin(angle),cos(angle))));
 				return coord + 0.5;
 			}
@@ -136,22 +139,24 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
 			fixed4 frag(v2f i) : COLOR {
 				// pixelize uv
             	
-				float2 uv = floor(i.uv*_Pixels)/_Pixels;				
+				float2 uv = floor(i.uv*_Pixels)/_Pixels;
 				//uv.y = 1 - uv.y;
-	
-				// check distance from center & distance to light
-				float d_circle = distance(uv, float2(0.5,0.5));
+
+				bool dith = dither(uv, i.uv);
+				
+				// check distance distance to light
 				float d_light = distance(uv , float2(_Light_origin));
+				
 				// cut out a circle
+				float d_circle = distance(uv, float2(0.5,0.5));
 				float a = step(d_circle, 0.5);
 				
-				bool dith = dither(uv,uv);
+				uv = spherify(uv);
 				uv = rotate(uv, _Rotation);
-
+				
+				
 				// get a noise value with light distance added
-				// this creates a moving dynamic shape
-				float fbm1 = fbm(uv);
-				d_light += fbm(uv*_Size+fbm1+float2(time*_Time_speed, 0.0))*0.3; // change the magic 0.3 here for different light strengths
+				d_light += fbm(uv*_Size+float2(time*_Time_speed, 0.0))*0.3; // change the magic 0.3 here for different light strengths
 				
 				// _Size of edge in which colors should be dithered
 				float dither_border = (1.0/_Pixels)*_Dither_Size;

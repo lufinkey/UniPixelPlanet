@@ -1,4 +1,4 @@
-Shader "PixelPlanets/Ring"
+Shader "PixelPlanets/Standard/Ring"
 {
     Properties
     {
@@ -31,7 +31,7 @@ Shader "PixelPlanets/Ring"
 
         Pass
         {
-			Tags { "LightMode"="ForwardBase"}
+			Tags { "LightMode"="ForwardBase" }
 
 			CULL Off
 			ZWrite Off // don't write to depth buffer 

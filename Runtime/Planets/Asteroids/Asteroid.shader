@@ -1,4 +1,4 @@
-Shader "PixelPlanets/Asteroid"
+Shader "PixelPlanets/Standard/Asteroid"
 {
     Properties
     {

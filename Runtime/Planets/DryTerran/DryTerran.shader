@@ -1,4 +1,4 @@
-Shader "PixelPlanets/DryTerran"
+Shader "PixelPlanets/Standard/DryTerran"
 {
     Properties
     {
@@ -25,12 +25,12 @@ Shader "PixelPlanets/DryTerran"
     SubShader
     {
         //Tags { "RenderType"="Opaque" }
-        Tags { "RenderType"="Opaque" "IgnoreProjector" = "True"}
+        Tags { "RenderType"="Opaque" "IgnoreProjector"="True" }
         LOD 100
 
         Pass
         {
-			Tags { "LightMode"="ForwardBase"}
+			Tags { "LightMode"="ForwardBase" }
 
 			CULL Off
 			ZWrite Off // don't write to depth buffer 

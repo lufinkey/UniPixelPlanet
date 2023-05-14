@@ -1,4 +1,4 @@
-Shader "PixelPlanets/Standard/LavaPlanetUnder"
+Shader "PixelPlanets/URP/Star"
 {
     Properties
     {
@@ -6,16 +6,10 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
     	
 	    _Pixels("Pixels", range(10,100)) = 0.0
 	    _Rotation("Rotation",range(0.0, 6.28)) = 0.0
-    	_Light_origin("Light origin", Vector) = (0.39,0.39,0.39,0.39)
 	    _Time_speed("Time Speed",range(-1.0, 1.0)) = 0.2
-	    _Dither_Size("Dither Size",range(0.0, 10.0)) = 2.0
-    	
-	    _Light_border_1("Light border1",range(0.0, 1.0)) = 0.52
-	    _Light_border_2("Light border2",range(0.0, 1.0)) = 0.62
-    	    	
-	    _Color1("Color1", Color) = (1,1,1,1)
-    	_Color2("Color2", Color) = (1,1,1,1)
-    	_Color3("Color3", Color) = (1,1,1,1)
+	        	
+	    _GradientTex("Texture", 2D) = "white" {}
+    	_TILES("TILES", range(0,20)) = 1
     	
 	    _Size("Size",float) = 50.0
 	    _OCTAVES("OCTAVES", range(0,20)) = 0
@@ -26,19 +20,17 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
     SubShader
     {
         //Tags { "RenderType"="Opaque" }
-        Tags { "RenderType"="Opaque" "IgnoreProjector" = "True" }
+        Tags { "RenderType"="Opaque" "IgnoreProjector"="True" "RenderPipeline"="UniversalPipeline" }
         LOD 100
 
         Pass
         {
-			Tags { "LightMode"="ForwardBase"}
+			Tags { "LightMode"="UniversalForward" }
 
 			CULL Off
 			ZWrite Off // don't write to depth buffer 
          	Blend SrcAlpha OneMinusSrcAlpha // use alpha blending
 
-
-        	
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -65,19 +57,13 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
             float4 _MainTex_ST;
             float _Pixels;
             float _Rotation;
-            float _Dither_Size;
-			float2 _Light_origin;    	
 			float _Time_speed;
-            float _Light_border_1;
-			float _Light_border_2;
             float _Size;
             int _OCTAVES;
             int _Seed;
 			float time;
-    		fixed4 _Color1;
-            fixed4 _Color2;
-            fixed4 _Color3;
-            
+            sampler2D _GradientTex;
+            float _TILES;            
 			struct Input
 	        {
 	            float2 uv_MainTex;
@@ -93,7 +79,7 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
 			
 			float rand(float2 coord) {
 				coord = mod(coord, float2(1.0,1.0)*round(_Size));
-				return frac(sin(dot(coord.xy ,float2(12.9898,78.233))) * 15.5453 * _Seed);
+				return frac(sin(dot(coord.xy ,float2(12.9898,78.233))) * 43758.5453 * _Seed);
 			}
 
 			float noise(float2 coord){
@@ -132,46 +118,69 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
             	coord = mul(coord,float2x2(float2(cos(angle),-sin(angle)),float2(sin(angle),cos(angle))));
 				return coord + 0.5;
 			}
+			
+			float2 spherify(float2 uv) {
+				float2 centered= uv *2.0-1.0;
+				float z = sqrt(1.0 - dot(centered.xy, centered.xy));
+				float2 sphere = centered/(z + 1.0);
+				return sphere * 0.5+0.5;
+			}
+			float2 Hash2(float2 p) {
+				float t = (time+10.0)*.3;
+				//p = mod(p, vec2(1.0,1.0)*round(_Size));
+				return float2(noise(p), noise(p*float2(.3135+sin(t), .5813-cos(t))));
+			}
+
+			// Tileable cell noise by Dave_Hoskins from shadertoy: https://www.shadertoy.com/view/4djGRh
+			float Cells(in float2 p, in float numCells) {
+				p *= numCells;
+				float d = 1.0e10;
+				for (int xo = -1; xo <= 1; xo++)
+				{
+					for (int yo = -1; yo <= 1; yo++)
+					{
+						float2 tp = floor(p) + float2(float(xo), float(yo));
+						tp = p - tp - Hash2(mod(tp, numCells / _TILES));
+						d = min(d, dot(tp, tp));
+					}
+				}
+				return sqrt(d);
+			}
+
 
 			fixed4 frag(v2f i) : COLOR {
 				// pixelize uv
             	
-				float2 uv = floor(i.uv*_Pixels)/_Pixels;				
+				float2 pixelized = floor(i.uv*_Pixels)/_Pixels;				
 				//uv.y = 1 - uv.y;
-	
-				// check distance from center & distance to light
-				float d_circle = distance(uv, float2(0.5,0.5));
-				float d_light = distance(uv , float2(_Light_origin));
+				// use dither val later to mix between colors
+				bool dith = dither(i.uv, pixelized);
+				
+				pixelized = rotate(pixelized, _Rotation);
+				
+				// spherify has to go after dither
+				pixelized = spherify(pixelized);
+				
+				// use two different _Sized cells for some variation
+				float n = Cells(pixelized - float2(time * _Time_speed * 2.0, 0), 10);
+				n *= Cells(pixelized - float2(time * _Time_speed * 2.0, 0), 20);
+				//n *= Cells(pixelized - vec2(time * _Time_speed * 2.0, 0), 30);
+				
+				// adjust cell value to get better looking stuff
+				n*= 2.;
+				n = clamp(n, 0.0, 1.0);
+				if (dith) { // here we dither
+					n *= 1.3;
+				}
+				
+				// constrain values 4 possibilities and then choose color based on those
+				float interpolate = floor(n * 3.0) / 3.0;
+				float3 c = tex2D(_GradientTex, float2(interpolate, 0.0)).rgb;
+				
 				// cut out a circle
-				float a = step(d_circle, 0.5);
+				float a = step(distance(pixelized, float2(0.5,0.5)), .5);
 				
-				bool dith = dither(uv,uv);
-				uv = rotate(uv, _Rotation);
-
-				// get a noise value with light distance added
-				// this creates a moving dynamic shape
-				float fbm1 = fbm(uv);
-				d_light += fbm(uv*_Size+fbm1+float2(time*_Time_speed, 0.0))*0.3; // change the magic 0.3 here for different light strengths
-				
-				// _Size of edge in which colors should be dithered
-				float dither_border = (1.0/_Pixels)*_Dither_Size;
-
-				// now we can assign colors based on distance to light origin
-				float3 col = _Color1.rgb;
-				if (d_light > _Light_border_1) {
-					col = _Color2.rgb;
-					if (d_light < _Light_border_1 + dither_border && dith) {
-						col = _Color1.rgb;
-					}
-				}
-				if (d_light > _Light_border_2) {
-					col = _Color3.rgb;
-					if (d_light < _Light_border_2 + dither_border && dith) {
-						col = _Color2.rgb;
-					}
-				}
-				
-				return fixed4(col, a);
+				return fixed4(c, a);
 				}
             
             ENDCG

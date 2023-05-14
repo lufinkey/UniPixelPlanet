@@ -1,4 +1,4 @@
-Shader "PixelPlanets/Standard/BlackholeRing"
+Shader "PixelPlanets/URP/BlackholeRing"
 {
     Properties
     {
@@ -21,12 +21,12 @@ Shader "PixelPlanets/Standard/BlackholeRing"
     SubShader
     {
         //Tags { "RenderType"="Opaque" }
-        Tags { "RenderType"="Opaque" "IgnoreProjector"="True" }
+        Tags { "RenderType"="Opaque" "IgnoreProjector" = "True" "RenderPipeline"="UniversalPipeline"}
         LOD 100
 
         Pass
         {
-			Tags { "LightMode"="ForwardBase"}
+			Tags { "LightMode"="UniversalForward"}
 
 			CULL Off
 			ZWrite Off // don't write to depth buffer 

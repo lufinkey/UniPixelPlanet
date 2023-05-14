@@ -1,4 +1,4 @@
-Shader "PixelPlanets/GasPlanet"
+Shader "PixelPlanets/Standard/GasPlanet"
 {
     Properties
     {
@@ -27,12 +27,12 @@ Shader "PixelPlanets/GasPlanet"
     SubShader
     {
         //Tags { "RenderType"="Opaque" }
-        Tags { "RenderType"="Opaque" "IgnoreProjector" = "True"}
+        Tags { "RenderType"="Opaque" "IgnoreProjector"="True" }
         LOD 100
 
         Pass
         {
-			Tags { "LightMode"="ForwardBase"}
+			Tags { "LightMode"="ForwardBase" }
 
 			CULL Off
 			ZWrite Off // don't write to depth buffer 

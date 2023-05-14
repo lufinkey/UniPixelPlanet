@@ -1,44 +1,37 @@
-Shader "PixelPlanets/Standard/LavaPlanetUnder"
+Shader "PixelPlanets/URP/StarBlobs"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
     	
-	    _Pixels("Pixels", range(10,100)) = 0.0
+	    _Pixels("Pixels", range(10,300)) = 200.0
 	    _Rotation("Rotation",range(0.0, 6.28)) = 0.0
-    	_Light_origin("Light origin", Vector) = (0.39,0.39,0.39,0.39)
 	    _Time_speed("Time Speed",range(-1.0, 1.0)) = 0.2
-	    _Dither_Size("Dither Size",range(0.0, 10.0)) = 2.0
-    	
-	    _Light_border_1("Light border1",range(0.0, 1.0)) = 0.52
-	    _Light_border_2("Light border2",range(0.0, 1.0)) = 0.62
-    	    	
-	    _Color1("Color1", Color) = (1,1,1,1)
-    	_Color2("Color2", Color) = (1,1,1,1)
-    	_Color3("Color3", Color) = (1,1,1,1)
+	        	
+	    _Color1("Color", Color) = (1,1,1,1)
     	
 	    _Size("Size",float) = 50.0
 	    _OCTAVES("OCTAVES", range(0,20)) = 0
 	    _Seed("Seed",range(1, 10)) = 1
+    	_Circle_amount("Circle Amount",range(2, 30)) = 5
+    	_Circle_Size("Circle Size",range(0.0, 1.0)) = 1.0
 	    time("time",float) = 0.0
     	
     }
     SubShader
     {
         //Tags { "RenderType"="Opaque" }
-        Tags { "RenderType"="Opaque" "IgnoreProjector" = "True" }
+        Tags { "RenderType"="Opaque" "IgnoreProjector" = "True" "RenderPipeline"="UniversalPipeline" }
         LOD 100
 
         Pass
         {
-			Tags { "LightMode"="ForwardBase"}
+			Tags { "LightMode"="UniversalForward" }
 
 			CULL Off
 			ZWrite Off // don't write to depth buffer 
          	Blend SrcAlpha OneMinusSrcAlpha // use alpha blending
 
-
-        	
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -65,18 +58,15 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
             float4 _MainTex_ST;
             float _Pixels;
             float _Rotation;
-            float _Dither_Size;
-			float2 _Light_origin;    	
 			float _Time_speed;
-            float _Light_border_1;
-			float _Light_border_2;
             float _Size;
             int _OCTAVES;
             int _Seed;
 			float time;
+            float _Circle_amount;
+            float _Circle_Size;           
     		fixed4 _Color1;
-            fixed4 _Color2;
-            fixed4 _Color3;
+
             
 			struct Input
 	        {
@@ -96,6 +86,27 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
 				return frac(sin(dot(coord.xy ,float2(12.9898,78.233))) * 15.5453 * _Seed);
 			}
 
+			float2 rotate(float2 coord, float angle){
+				coord -= 0.5;
+				//coord *= mat2(float2(cos(angle),-sin(angle)),float2(sin(angle),cos(angle)));            	
+            	coord = mul(coord,float2x2(float2(cos(angle),-sin(angle)),float2(sin(angle),cos(angle))));
+				return coord + 0.5;
+			}
+			
+			float circle(float2 uv) {
+				float invert = 1.0 / _Circle_amount;
+				
+				if (mod(uv.y, invert*2.0) < invert) {
+					uv.x += invert*0.5;
+				}
+				float2 rand_co = floor(uv*_Circle_amount)/_Circle_amount;
+				uv = mod(uv, invert)*_Circle_amount;
+				
+				float r = rand(rand_co);
+				r = clamp(r, invert, 1.0 - invert);
+				float circle = distance(uv, float2(r,r));
+				return smoothstep(circle, circle+0.5, invert * _Circle_Size * rand(rand_co*1.5));
+			}
 			float noise(float2 coord){
 				float2 i = floor(coord);
 				float2 f = frac(coord);
@@ -126,52 +137,38 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
 				return mod(uv1.x+uv2.y,2.0/_Pixels) <= 1.0 / _Pixels;
 			}
 
-			float2 rotate(float2 coord, float angle){
-				coord -= 0.5;
-				//coord *= mat2(float2(cos(angle),-sin(angle)),float2(sin(angle),cos(angle)));            	
-            	coord = mul(coord,float2x2(float2(cos(angle),-sin(angle)),float2(sin(angle),cos(angle))));
-				return coord + 0.5;
+			float2 spherify(float2 uv) {
+				float2 centered= uv *2.0-1.0;
+				float z = sqrt(1.0 - dot(centered.xy, centered.xy));
+				float2 sphere = centered/(z + 1.0);
+				return sphere * 0.5+0.5;
 			}
-
 			fixed4 frag(v2f i) : COLOR {
 				// pixelize uv
             	
-				float2 uv = floor(i.uv*_Pixels)/_Pixels;				
+				float2 pixelized = floor(i.uv*_Pixels)/_Pixels;				
 				//uv.y = 1 - uv.y;
-	
-				// check distance from center & distance to light
-				float d_circle = distance(uv, float2(0.5,0.5));
-				float d_light = distance(uv , float2(_Light_origin));
-				// cut out a circle
-				float a = step(d_circle, 0.5);
+				// use dither val later to mix between colors
+				bool dith = dither(i.uv, pixelized);
 				
-				bool dith = dither(uv,uv);
-				uv = rotate(uv, _Rotation);
+				float2 uv = rotate(pixelized, _Rotation);
 
-				// get a noise value with light distance added
-				// this creates a moving dynamic shape
-				float fbm1 = fbm(uv);
-				d_light += fbm(uv*_Size+fbm1+float2(time*_Time_speed, 0.0))*0.3; // change the magic 0.3 here for different light strengths
+				// angle from centered uv's
+				float angle = atan2(uv.x - 0.5, uv.y - 0.5);
+				float d = distance(pixelized, float2(0.5,0.5));
 				
-				// _Size of edge in which colors should be dithered
-				float dither_border = (1.0/_Pixels)*_Dither_Size;
-
-				// now we can assign colors based on distance to light origin
-				float3 col = _Color1.rgb;
-				if (d_light > _Light_border_1) {
-					col = _Color2.rgb;
-					if (d_light < _Light_border_1 + dither_border && dith) {
-						col = _Color1.rgb;
-					}
-				}
-				if (d_light > _Light_border_2) {
-					col = _Color3.rgb;
-					if (d_light < _Light_border_2 + dither_border && dith) {
-						col = _Color2.rgb;
-					}
+				
+				float c = 0.0;
+				for(int i = 0; i < 15; i++) {
+					float r = rand(float2(float(i),float(i)));
+					float2 circleUV = float2(d, angle);
+					c += circle(circleUV*_Size -time * _Time_speed - (1.0/d) * 0.1 + r);
 				}
 				
-				return fixed4(col, a);
+				c *= 0.37 - d;
+				c = step(0.07, c - d);
+				
+				return fixed4(float3(_Color1.rgb), c);
 				}
             
             ENDCG

@@ -1,43 +1,41 @@
-Shader "PixelPlanets/Standard/LavaPlanetUnder"
+Shader "PixelPlanets/URP/Ring"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-    	
-	    _Pixels("Pixels", range(10,100)) = 0.0
-	    _Rotation("Rotation",range(0.0, 6.28)) = 0.0
+	    _Pixels("Pixels", range(10,300)) = 100.0
+	    _Rotation("Rotation",range(0.0, 6.28)) = 0.0    		    
     	_Light_origin("Light origin", Vector) = (0.39,0.39,0.39,0.39)
 	    _Time_speed("Time Speed",range(-1.0, 1.0)) = 0.2
-	    _Dither_Size("Dither Size",range(0.0, 10.0)) = 2.0
-    	
-	    _Light_border_1("Light border1",range(0.0, 1.0)) = 0.52
+	    
+    	_Light_border_1("Light border1",range(0.0, 1.0)) = 0.52
 	    _Light_border_2("Light border2",range(0.0, 1.0)) = 0.62
-    	    	
-	    _Color1("Color1", Color) = (1,1,1,1)
-    	_Color2("Color2", Color) = (1,1,1,1)
-    	_Color3("Color3", Color) = (1,1,1,1)
     	
+    	_Ring_width("Ring Width",range(0.0, 0.15)) = 0.1
+	    _Ring_perspective("Ring Perspective",float) = 4.0
+    	_Scale_rel_to_planet("Scale rel to Planet",float) = 6.0
+	    
+        _ColorScheme("ColorScheme", 2D) = "white" {}
+    	_Dark_ColorScheme("Dark ColorScheme", 2D) = "black" {}
+
 	    _Size("Size",float) = 50.0
 	    _OCTAVES("OCTAVES", range(0,20)) = 0
 	    _Seed("Seed",range(1, 10)) = 1
 	    time("time",float) = 0.0
-    	
     }
     SubShader
     {
         //Tags { "RenderType"="Opaque" }
-        Tags { "RenderType"="Opaque" "IgnoreProjector" = "True" }
+        Tags { "RenderType"="Opaque" "IgnoreProjector"="True" "RenderPipeline"="UniversalPipeline"}
         LOD 100
 
         Pass
         {
-			Tags { "LightMode"="ForwardBase"}
+			Tags { "LightMode"="UniversalForward" }
 
 			CULL Off
 			ZWrite Off // don't write to depth buffer 
          	Blend SrcAlpha OneMinusSrcAlpha // use alpha blending
-
-
         	
             CGPROGRAM
             #pragma vertex vert
@@ -65,23 +63,27 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
             float4 _MainTex_ST;
             float _Pixels;
             float _Rotation;
-            float _Dither_Size;
 			float2 _Light_origin;    	
 			float _Time_speed;
             float _Light_border_1;
 			float _Light_border_2;
+
+            float _Ring_width;
+            float _Ring_perspective;
+            float _Scale_rel_to_planet;
+            
+			sampler2D _ColorScheme;
+            sampler2D _Dark_ColorScheme;
             float _Size;
             int _OCTAVES;
             int _Seed;
 			float time;
-    		fixed4 _Color1;
-            fixed4 _Color2;
-            fixed4 _Color3;
             
 			struct Input
 	        {
 	            float2 uv_MainTex;
 	        };
+
             v2f vert (appdata v)
             {
                 v2f o;
@@ -90,9 +92,8 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
                 UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
             }
-			
 			float rand(float2 coord) {
-				coord = mod(coord, float2(1.0,1.0)*round(_Size));
+				coord = mod(coord, float2(2.0,1.0)*round(_Size));
 				return frac(sin(dot(coord.xy ,float2(12.9898,78.233))) * 15.5453 * _Seed);
 			}
 
@@ -122,13 +123,32 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
 				return value;
 			}
 
-			bool dither(float2 uv1, float2 uv2) {
-				return mod(uv1.x+uv2.y,2.0/_Pixels) <= 1.0 / _Pixels;
+
+			// by Leukbaars from https://www.shadertoy.com/view/4tK3zR
+			float circleNoise(float2 uv) {
+			    float uv_y = floor(uv.y);
+			    uv.x += uv_y*.31;
+			    float2 f = frac(uv);
+				float h = rand(float2(floor(uv.x),floor(uv_y)));
+			    float m = (length(f-0.25-(h*0.5)));
+			    float r = h*0.25;
+			    return smoothstep(0.0, r, m*0.75);
+			}
+
+			bool dither(float2 uv_pixel, float2 uv_real) {
+				return mod(uv_pixel.x+uv_real.y,2.0/_Pixels) <= 1.0 / _Pixels;
+			}
+
+			float2 spherify(float2 uv) {
+				float2 centered= uv *2.0-1.0;
+				float z = sqrt(1.0 - dot(centered.xy, centered.xy));
+				float2 sphere = centered/(z + 1.0);
+				return sphere * 0.5+0.5;
 			}
 
 			float2 rotate(float2 coord, float angle){
 				coord -= 0.5;
-				//coord *= mat2(float2(cos(angle),-sin(angle)),float2(sin(angle),cos(angle)));            	
+				//coord *= float2x2(float2(cos(angle),-sin(angle)),float2(sin(angle),cos(angle)));
             	coord = mul(coord,float2x2(float2(cos(angle),-sin(angle)),float2(sin(angle),cos(angle))));
 				return coord + 0.5;
 			}
@@ -138,41 +158,46 @@ Shader "PixelPlanets/Standard/LavaPlanetUnder"
             	
 				float2 uv = floor(i.uv*_Pixels)/_Pixels;				
 				//uv.y = 1 - uv.y;
-	
-				// check distance from center & distance to light
-				float d_circle = distance(uv, float2(0.5,0.5));
-				float d_light = distance(uv , float2(_Light_origin));
-				// cut out a circle
-				float a = step(d_circle, 0.5);
+
+				// we use this value later to dither between colors
+				bool dith = dither(uv, uv);
 				
-				bool dith = dither(uv,uv);
+				float light_d = distance(uv, _Light_origin);
 				uv = rotate(uv, _Rotation);
-
-				// get a noise value with light distance added
-				// this creates a moving dynamic shape
-				float fbm1 = fbm(uv);
-				d_light += fbm(uv*_Size+fbm1+float2(time*_Time_speed, 0.0))*0.3; // change the magic 0.3 here for different light strengths
 				
-				// _Size of edge in which colors should be dithered
-				float dither_border = (1.0/_Pixels)*_Dither_Size;
-
-				// now we can assign colors based on distance to light origin
-				float3 col = _Color1.rgb;
-				if (d_light > _Light_border_1) {
-					col = _Color2.rgb;
-					if (d_light < _Light_border_1 + dither_border && dith) {
-						col = _Color1.rgb;
-					}
-				}
-				if (d_light > _Light_border_2) {
-					col = _Color3.rgb;
-					if (d_light < _Light_border_2 + dither_border && dith) {
-						col = _Color2.rgb;
-					}
+				// center is used to determine ring position
+				float2 uv_center = uv - float2(0.0, 0.5);
+				
+				// tilt ring
+				uv_center *= float2(1.0, _Ring_perspective);
+				float center_d = distance(uv_center,float2(0.5, 0.0));
+				
+				
+				// cut out 2 circles of different _Sizes and only intersection of the 2.
+				float ring = smoothstep(0.5-_Ring_width*2.0, 0.5-_Ring_width, center_d);
+				ring *= smoothstep(center_d-_Ring_width, center_d, 0.4);
+				
+				// pretend like the ring goes behind the planet by removing it if it's in the upper half.
+				if (uv.y < 0.5) {
+					ring *= step(1.0/_Scale_rel_to_planet, distance(uv,float2(0.5,0.5)));
 				}
 				
-				return fixed4(col, a);
+				// rotate material in the ring
+				uv_center = rotate(uv_center+float2(0, 0.5), time*_Time_speed);
+				// some noise
+				ring *= fbm(uv_center*_Size);
+				
+				// apply some colors based on final value
+				float posterized = floor((ring+pow(light_d, 2.0)*2.0)*4.0)/4.0;
+				float3 col;
+				if (posterized <= 1.0) {
+					col = tex2D(_ColorScheme, float2(posterized, uv.y)).rgb;
+				} else {
+					col = tex2D(_Dark_ColorScheme, float2(posterized-1.0, uv.y)).rgb;
 				}
+				float ring_a = step(0.28, ring);				
+				return fixed4(col, ring_a);
+			}
             
             ENDCG
         }
